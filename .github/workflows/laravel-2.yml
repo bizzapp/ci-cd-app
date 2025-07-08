@@ -1,0 +1,36 @@
+name: Deploy Laravel 12 on Private Server
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+
+    steps:
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: 🧰 Setup PHP 8.3
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, bcmath, pdo_mysql, tokenizer, ctype, xml, fileinfo, openssl
+
+      - name: 📦 Install Composer Dependencies
+        run: |
+          composer install --no-dev --prefer-dist --optimize-autoloader
+
+      - name: 🗝️ Generate Laravel Key
+        run: php artisan key:generate
+
+      - name: 🧹 Laravel Optimize
+        run: |
+          php artisan config:cache
+          php artisan route:cache
+          php artisan view:cache
+
+      - name: 🛠️ Run Migrations
+        run: php artisan migrate --force
